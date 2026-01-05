@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -56,17 +57,22 @@ const novoNome = document.getElementById('novoNome');
 const novaCapa = document.getElementById('novaCapa');
 const novoLink = document.getElementById('novoLink');
 
-// Inicializa playlist
-let playlist = JSON.parse(localStorage.getItem('playlist') || '[]');
+let playlist = [];
 let atualIndex = 0;
 
-// Carregar última postagem
-if(localStorage.getItem('ultima')){
-  const ultimo = JSON.parse(localStorage.getItem('ultima'));
-  nome.innerText = ultimo.nome;
-  capa.src = ultimo.capa;
-  player.src = ultimo.link;
-}
+// 🔹 CARREGAR PLAYLIST JSON
+fetch('playlist.json')
+  .then(res => res.json())
+  .then(data => {
+    playlist = data;
+    if(playlist.length > 0){
+      const ultimo = playlist[playlist.length-1];
+      nome.innerText = ultimo.nome;
+      capa.src = ultimo.capa;
+      player.src = ultimo.link;
+    }
+  })
+  .catch(err => console.error('Erro ao carregar playlist.json', err));
 
 // LOGIN ADMINISTRADOR
 function logar(){
@@ -78,7 +84,7 @@ function logar(){
   }
 }
 
-// SALVAR POSTAGEM (adiciona à playlist)
+// SALVAR POSTAGEM (adiciona à playlist JSON local)
 function salvar(){
   const postagem = {
     nome: novoNome.value,
@@ -86,9 +92,7 @@ function salvar(){
     link: novoLink.value
   };
   playlist.push(postagem);
-  localStorage.setItem('playlist', JSON.stringify(playlist));
-  localStorage.setItem('ultima', JSON.stringify(postagem));
-  alert('Postagem salva!');
+  alert('Postagem salva! Para que fique visível a todos, atualize o arquivo playlist.json no GitHub.');
   location.reload();
 }
 
@@ -96,15 +100,7 @@ function salvar(){
 function excluir(){
   if(confirm('Deseja realmente excluir a última postagem?')){
     playlist.pop();
-    localStorage.setItem('playlist', JSON.stringify(playlist));
-    if(playlist.length>0){
-      localStorage.setItem('ultima', JSON.stringify(playlist[playlist.length-1]));
-    } else {
-      localStorage.removeItem('ultima');
-      nome.innerText = 'WolfMusic Rádio';
-      capa.src = 'https://i.imgur.com/8Km9tLL.png';
-      player.src = '';
-    }
+    alert('Postagem removida! Para que fique removida para todos, atualize o arquivo playlist.json no GitHub.');
     location.reload();
   }
 }
@@ -113,7 +109,6 @@ function excluir(){
 function tocarAleatorio(){
   if(playlist.length === 0){ alert('Nenhuma postagem cadastrada!'); return; }
   
-  // Embaralhar playlist
   const shuffled = playlist.slice().sort(() => Math.random() - 0.5);
   atualIndex = 0;
   
@@ -126,14 +121,11 @@ function tocarAleatorio(){
     
     atualIndex++;
     if(atualIndex >= shuffled.length){
-      atualIndex = 0; // repete playlist embaralhada
+      atualIndex = 0; 
     }
   }
   
-  // Quando acabar a música, toca próxima automaticamente
   player.onended = tocarProximo;
-  
-  // Começa primeira música
   tocarProximo();
 }
 </script>
