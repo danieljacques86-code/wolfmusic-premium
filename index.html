@@ -54,11 +54,8 @@ const novoLink = document.getElementById('novoLink');
 let playlist = [];
 let atualIndex = 0;
 
-// 🔹 LINK DO GOOGLE DRIVE (playlist.json)
-const gdLink = "https://docs.google.com/uc?export=download&id=SEU_ID_DO_PLAYLIST_JSON";
-
-// 🔹 CARREGAR PLAYLIST
-fetch(gdLink)
+// 🔹 CARREGAR PLAYLIST DO JSON (GitHub)
+fetch('playlist.json')
   .then(res => res.json())
   .then(data => {
     playlist = data;
@@ -68,11 +65,9 @@ fetch(gdLink)
       capa.src = ultimo.capa;
       player.src = ultimo.link;
     }
-  }).catch(err=>{
-    console.log("Erro ao carregar playlist do Drive:", err);
-  });
+  }).catch(err => console.log("Erro ao carregar playlist:", err));
 
-// 🔹 LOGIN ADMIN
+// LOGIN ADMIN
 function logar(){
   if(user.value==='admin@blogger.com' && pass.value==='26122025'){
     admin.style.display='block';
@@ -80,7 +75,7 @@ function logar(){
   } else alert('Acesso negado');
 }
 
-// 🔹 SALVAR POSTAGEM (localStorage)
+// SALVAR POSTAGEM (localStorage)
 function salvar(){
   const postagem = {
     nome: novoNome.value,
@@ -89,13 +84,13 @@ function salvar(){
   };
   playlist.push(postagem);
   localStorage.setItem('playlist', JSON.stringify(playlist));
-  alert('Postagem salva localmente!');
+  alert('Postagem salva!');
   location.reload();
 }
 
-// 🔹 EXCLUIR ÚLTIMA POSTAGEM
+// EXCLUIR ÚLTIMA POSTAGEM
 function excluir(){
-  if(playlist.length===0){ alert('Nenhuma postagem para excluir'); return; }
+  if(playlist.length===0){ alert('Nenhuma postagem'); return; }
   if(confirm('Deseja realmente excluir a última postagem?')){
     playlist.pop();
     localStorage.setItem('playlist', JSON.stringify(playlist));
@@ -113,7 +108,7 @@ function excluir(){
   }
 }
 
-// 🔹 MODO ALEATÓRIO
+// MODO ALEATÓRIO
 function tocarAleatorio(){
   if(playlist.length===0){ alert('Nenhuma postagem cadastrada!'); return; }
   const shuffled = playlist.slice().sort(()=>Math.random()-0.5);
