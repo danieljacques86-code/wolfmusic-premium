@@ -14,9 +14,6 @@ button{background:#f1c40f;font-weight:bold}
 .badge{background:#f1c40f;color:#000;padding:5px 10px;border-radius:20px;font-size:12px;display:inline-block;margin-bottom:10px}
 .btn-del{background:#e74c3c;color:#fff;font-weight:bold;margin-top:5px;}
 </style>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -53,37 +50,29 @@ const login = document.getElementById('login');
 const novoNome = document.getElementById('novoNome');
 const novaCapa = document.getElementById('novaCapa');
 const novoLink = document.getElementById('novoLink');
+
 let playlist = [];
 let atualIndex = 0;
 
-// 🔹 CONFIGURAÇÃO FIREBASE
-const firebaseConfig = {
-  apiKey: "SEU_APIKEY",
-  authDomain: "SEU_AUTHDOMAIN",
-  projectId: "SEU_PROJECTID",
-  storageBucket: "SEU_STORAGEBUCKET",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-  appId: "SEU_APPID"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const collectionRef = db.collection('playlist');
+// 🔹 LINK DO GOOGLE DRIVE (playlist.json)
+const gdLink = "https://docs.google.com/uc?export=download&id=SEU_ID_DO_PLAYLIST_JSON";
 
-// 🔹 CARREGAR PLAYLIST DO FIRESTORE
-collectionRef.orderBy('timestamp').get().then(snapshot => {
-  playlist = [];
-  snapshot.forEach(doc => {
-    playlist.push({...doc.data(), id: doc.id});
+// 🔹 CARREGAR PLAYLIST
+fetch(gdLink)
+  .then(res => res.json())
+  .then(data => {
+    playlist = data;
+    if(playlist.length>0){
+      const ultimo = playlist[playlist.length-1];
+      nome.innerText = ultimo.nome;
+      capa.src = ultimo.capa;
+      player.src = ultimo.link;
+    }
+  }).catch(err=>{
+    console.log("Erro ao carregar playlist do Drive:", err);
   });
-  if(playlist.length>0){
-    const ultimo = playlist[playlist.length-1];
-    nome.innerText = ultimo.nome;
-    capa.src = ultimo.capa;
-    player.src = ultimo.link;
-  }
-});
 
-// LOGIN ADMIN
+// 🔹 LOGIN ADMIN
 function logar(){
   if(user.value==='admin@blogger.com' && pass.value==='26122025'){
     admin.style.display='block';
@@ -91,33 +80,40 @@ function logar(){
   } else alert('Acesso negado');
 }
 
-// SALVAR POSTAGEM (FIRESTORE)
+// 🔹 SALVAR POSTAGEM (localStorage)
 function salvar(){
   const postagem = {
     nome: novoNome.value,
     capa: novaCapa.value,
-    link: novoLink.value,
-    timestamp: Date.now()
+    link: novoLink.value
   };
-  collectionRef.add(postagem).then(()=> {
-    alert('Postagem salva!');
-    location.reload();
-  });
+  playlist.push(postagem);
+  localStorage.setItem('playlist', JSON.stringify(playlist));
+  alert('Postagem salva localmente!');
+  location.reload();
 }
 
-// EXCLUIR ÚLTIMA POSTAGEM
+// 🔹 EXCLUIR ÚLTIMA POSTAGEM
 function excluir(){
   if(playlist.length===0){ alert('Nenhuma postagem para excluir'); return; }
   if(confirm('Deseja realmente excluir a última postagem?')){
-    const ultimoId = playlist[playlist.length-1].id;
-    collectionRef.doc(ultimoId).delete().then(()=>{
-      alert('Postagem excluída!');
-      location.reload();
-    });
+    playlist.pop();
+    localStorage.setItem('playlist', JSON.stringify(playlist));
+    if(playlist.length>0){
+      const ultimo = playlist[playlist.length-1];
+      nome.innerText = ultimo.nome;
+      capa.src = ultimo.capa;
+      player.src = ultimo.link;
+    } else {
+      nome.innerText = 'WolfMusic Rádio';
+      capa.src = 'https://i.imgur.com/8Km9tLL.png';
+      player.src = '';
+    }
+    location.reload();
   }
 }
 
-// MODO ALEATÓRIO
+// 🔹 MODO ALEATÓRIO
 function tocarAleatorio(){
   if(playlist.length===0){ alert('Nenhuma postagem cadastrada!'); return; }
   const shuffled = playlist.slice().sort(()=>Math.random()-0.5);
