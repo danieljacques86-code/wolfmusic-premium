@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>WolfMusic Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{background:#0b0b0b;color:#fff;font-family:Arial;text-align:center}
+.card{max-width:360px;margin:30px auto;background:#151515;padding:20px;border-radius:15px;box-shadow:0 0 15px #000}
+img{width:100%;border-radius:12px}
+input,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:none}
+button{background:#f1c40f;font-weight:bold}
+.admin{display:none}
+.badge{background:#f1c40f;color:#000;padding:5px 10px;border-radius:20px;font-size:12px;display:inline-block;margin-bottom:10px}
+.btn-del{background:#e74c3c;color:#fff;font-weight:bold;margin-top:5px;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <span class="badge">WolfMusic Premium</span>
+  <img id="capa" src="https://i.imgur.com/8Km9tLL.png">
+  <h2 id="nome">WolfMusic Rádio</h2>
+  <audio id="player" controls style="width:100%"></audio>
+  <button onclick="tocarAleatorio()">Modo Aleatório ▶️</button>
+</div>
+
+<div class="card admin" id="admin">
+  <h3>Modo Administrador</h3>
+  <input id="novoNome" placeholder="Nome da música ou rádio">
+  <input id="novaCapa" placeholder="URL da capa">
+  <input id="novoLink" placeholder="Link MP3 ou Rádio">
+  <button onclick="salvar()">Salvar Conteúdo</button>
+  <button class="btn-del" onclick="excluir()">Excluir Postagem</button>
+</div>
+
+<div class="card" id="login">
+  <h3>Acesso Premium</h3>
+  <input id="user" placeholder="Usuário">
+  <input id="pass" type="password" placeholder="Senha">
+  <button onclick="logar()">Entrar</button>
+</div>
+
+<script>
+const nome = document.getElementById('nome');
+const capa = document.getElementById('capa');
+const player = document.getElementById('player');
+
+const admin = document.getElementById('admin');
+const login = document.getElementById('login');
+
+const user = document.getElementById('user');
+const pass = document.getElementById('pass');
+
+const novoNome = document.getElementById('novoNome');
+const novaCapa = document.getElementById('novaCapa');
+const novoLink = document.getElementById('novoLink');
+
+// Inicializa playlist
+let playlist = JSON.parse(localStorage.getItem('playlist') || '[]');
+let atualIndex = 0;
+
+// Carregar última postagem
+if(localStorage.getItem('ultima')){
+  const ultimo = JSON.parse(localStorage.getItem('ultima'));
+  nome.innerText = ultimo.nome;
+  capa.src = ultimo.capa;
+  player.src = ultimo.link;
+}
+
+// LOGIN ADMINISTRADOR
+function logar(){
+  if(user.value === 'admin@blogger.com' && pass.value === '26122025'){
+    admin.style.display = 'block';
+    login.style.display = 'none';
+  } else {
+    alert('Acesso negado');
+  }
+}
+
+// SALVAR POSTAGEM (adiciona à playlist)
+function salvar(){
+  const postagem = {
+    nome: novoNome.value,
+    capa: novaCapa.value,
+    link: novoLink.value
+  };
+  playlist.push(postagem);
+  localStorage.setItem('playlist', JSON.stringify(playlist));
+  localStorage.setItem('ultima', JSON.stringify(postagem));
+  alert('Postagem salva!');
+  location.reload();
+}
+
+// EXCLUIR POSTAGEM (ultima)
+function excluir(){
+  if(confirm('Deseja realmente excluir a última postagem?')){
+    playlist.pop();
+    localStorage.setItem('playlist', JSON.stringify(playlist));
+    if(playlist.length>0){
+      localStorage.setItem('ultima', JSON.stringify(playlist[playlist.length-1]));
+    } else {
+      localStorage.removeItem('ultima');
+      nome.innerText = 'WolfMusic Rádio';
+      capa.src = 'https://i.imgur.com/8Km9tLL.png';
+      player.src = '';
+    }
+    location.reload();
+  }
+}
+
+// MODO ALEATÓRIO
+function tocarAleatorio(){
+  if(playlist.length === 0){ alert('Nenhuma postagem cadastrada!'); return; }
+  
+  // Embaralhar playlist
+  const shuffled = playlist.slice().sort(() => Math.random() - 0.5);
+  atualIndex = 0;
+  
+  function tocarProximo(){
+    const atual = shuffled[atualIndex];
+    nome.innerText = atual.nome;
+    capa.src = atual.capa;
+    player.src = atual.link;
+    player.play();
+    
+    atualIndex++;
+    if(atualIndex >= shuffled.length){
+      atualIndex = 0; // repete playlist embaralhada
+    }
+  }
+  
+  // Quando acabar a música, toca próxima automaticamente
+  player.onended = tocarProximo;
+  
+  // Começa primeira música
+  tocarProximo();
+}
+</script>
+
+</body>
+</html>
