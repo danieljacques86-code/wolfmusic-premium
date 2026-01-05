@@ -54,8 +54,8 @@ const novoLink = document.getElementById('novoLink');
 let playlist = [];
 let atualIndex = 0;
 
-// 🔹 CARREGAR PLAYLIST DO JSON (GitHub)
-fetch('playlist.json')
+// 🔹 CARREGAR PLAYLIST DO GOOGLE DRIVE
+fetch('https://drive.google.com/uc?export=download&id=1Vf51ajwmH4K3RHl6fQg1DtWyGyMPgGQq')
   .then(res => res.json())
   .then(data => {
     playlist = data;
@@ -65,7 +65,8 @@ fetch('playlist.json')
       capa.src = ultimo.capa;
       player.src = ultimo.link;
     }
-  }).catch(err => console.log("Erro ao carregar playlist:", err));
+  })
+  .catch(err => console.log("Erro ao carregar playlist do Drive:", err));
 
 // LOGIN ADMIN
 function logar(){
@@ -84,7 +85,7 @@ function salvar(){
   };
   playlist.push(postagem);
   localStorage.setItem('playlist', JSON.stringify(playlist));
-  alert('Postagem salva!');
+  alert('Postagem salva! (somente neste navegador)');
   location.reload();
 }
 
